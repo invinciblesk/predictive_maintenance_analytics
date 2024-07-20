@@ -1,1 +1,1 @@
-# predictive_maintenance_forecaster
+# predictive_maintenance_analytics
