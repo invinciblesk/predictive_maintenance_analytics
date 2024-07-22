@@ -15,12 +15,15 @@ import plotly.graph_objects as go
 from scipy.stats import ttest_ind, mannwhitneyu
 
 
-def load_and_clean_data(file_path):
-    pred_df = pd.read_csv(file_path)
+def load_and_clean_data(filepath):
+    # Load the dataset
+    pred_df = pd.read_csv(filepath)
 
-    if 'UDI' in pred_df.columns:
-        pred_df.drop('UDI', axis=1, inplace=True)
+    # Drop unnecessary columns
+    columns_to_drop = ['UDI', 'Product ID']
+    pred_df_cleaned = pred_df.drop(columns=columns_to_drop, errors='ignore')
 
+    # Combine failures into a single column
     def combine_failures(row):
         failures = []
         if row['TWF']: failures.append('TWF')
@@ -30,30 +33,43 @@ def load_and_clean_data(file_path):
         if row['RNF']: failures.append('RNF')
         return ', '.join(failures) if failures else 'No Failure'
 
-    pred_df['Failure type'] = pred_df.apply(combine_failures, axis=1)
-    pred_df.drop(['TWF', 'HDF', 'PWF', 'OSF', 'RNF'], axis=1, inplace=True)
-
+    pred_df_cleaned['Failure type'] = pred_df_cleaned.apply(combine_failures, axis=1)
+    pred_df_cleaned.drop(['TWF', 'HDF', 'PWF', 'OSF', 'RNF'], axis=1, inplace=True)
+    # Columns to bootstrap
+    columns_to_bootstrap = ['Air temperature [C]', 'Process temperature [C]', 'Rotational speed [rpm]', 'Torque [Nm]', 'Tool wear [min]']
     # Convert temperatures from Kelvin to Celsius
-    pred_df[['Air temperature [C]', 'Process temperature [C]']] = pred_df[['Air temperature [K]', 'Process temperature [K]']] - 273.15
+    pred_df_cleaned_celcius = pred_df_cleaned.copy()
+    if 'Air temperature [K]' in pred_df_cleaned_celcius.columns:
+        pred_df_cleaned_celcius['Air temperature [C]'] = pred_df_cleaned_celcius['Air temperature [K]'] - 273.15
+        pred_df_cleaned_celcius.drop('Air temperature [K]', axis=1, inplace=True)
 
-    # Define the new column order, replacing Kelvin columns with Celsius columns
-    new_column_order = ['Product ID', 'Type', 'Air temperature [C]', 'Process temperature [C]',
+    if 'Process temperature [K]' in pred_df_cleaned_celcius.columns:
+        pred_df_cleaned_celcius['Process temperature [C]'] = pred_df_cleaned_celcius['Process temperature [K]'] - 273.15
+        pred_df_cleaned_celcius.drop('Process temperature [K]', axis=1, inplace=True)
+
+    # Define the new column order for pred_df_cleaned_celcius, ensuring it matches the updated DataFrame
+    new_column_order = ['Type', 'Air temperature [C]', 'Process temperature [C]',
                         'Rotational speed [rpm]', 'Torque [Nm]', 'Tool wear [min]',
                         'Machine failure', 'Failure type']
-    pred_df = pred_df.reindex(columns=new_column_order)
+    pred_df_cleaned_celcius = pred_df_cleaned_celcius.reindex(columns=new_column_order)
 
-    return pred_df
+    return pred_df_cleaned_celcius, columns_to_bootstrap
 
 
-    def bootstrap_resample(data, n_bootstrap=1000):
-        """Perform bootstrapping on the data and return the sample means."""
+def bootstrap_resample(data, columns_to_bootstrap, n_bootstrap=1000):
+    """Perform bootstrapping on the specified columns of the data and return the sample means for each column."""
     
-    bootstrap_means = np.zeros(n_bootstrap)
+    # Ensure all specified columns exist in the data
+    assert all(column in data.columns for column in columns_to_bootstrap), "Some specified columns do not exist in the data."
+    
+    bootstrap_means = {column: np.zeros(n_bootstrap) for column in columns_to_bootstrap}
     n = len(data)
-    for i in range(n_bootstrap):
-        sample = np.random.choice(data, size=n, replace=True)
-        bootstrap_means[i] = np.mean(sample)
+    
+    for column in columns_to_bootstrap:
+        for i in range(n_bootstrap):
+            sample = np.random.choice(data[column], size=n, replace=True)
+            bootstrap_means[column][i] = np.mean(sample)
+    
     return bootstrap_means
 
-    # Columns to bootstrap
-    columns_to_bootstrap = ['Air temperature [K]', 'Process temperature [K]', 'Rotational speed [rpm]', 'Torque [Nm]', 'Tool wear [min]']
+    

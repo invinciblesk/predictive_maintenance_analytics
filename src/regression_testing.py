@@ -56,7 +56,7 @@ def save_results_to_csv(results, reports_dir):
             ])
 
 def perform_regression(df, reports_dir):
-    X = df.drop(['Product ID', 'Type', 'Machine failure', 'Failure type'], axis=1)
+    X = df.drop(['Type', 'Machine failure', 'Failure type'], axis=1)
     y = df['Machine failure']
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)

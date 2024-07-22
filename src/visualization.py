@@ -6,21 +6,21 @@ import numpy as np
 
 
 
-columns_to_plot = ['Air temperature [C]', 'Process temperature [C]', 'Rotational speed [rpm]', 'Torque [Nm]', 'Tool wear [min]']
-
-def plot_bootstrap_means(data, img_dir):
-    # 
-    for column in data.columns:
+def plot_bootstrap_means(bootstrap_means, img_dir):
+    """Plot the bootstrap means for each column."""
+    
+    for column, means in bootstrap_means.items():
         plt.figure()
-        data[column].hist()
+        plt.hist(means, bins=50, alpha=0.75)
         plt.title(f'Bootstrap Means for {column}')
-        plt.xlabel('Value')
+        plt.xlabel('Mean Value')
         plt.ylabel('Frequency')
         
-        plt.savefig(os.path.join(img_dir, f'{column}_bootstrap_means.png'))
+        # Save the plot to the specified directory
+        plt.savefig(f'{img_dir}/{column}_bootstrap_means.png')
         plt.close()
 
-def plot_boxplots(pred_df_cleaned, img_dir):
+def plot_boxplots(pred_df_cleaned, columns_to_bootstrap, img_dir):
     columns_to_bootstrap = ['Air temperature [C]', 'Process temperature [C]', 'Rotational speed [rpm]', 'Torque [Nm]', 'Tool wear [min]']
     fig, axes = plt.subplots(3, 2, figsize=(20, 18))
     axes = axes.flatten()

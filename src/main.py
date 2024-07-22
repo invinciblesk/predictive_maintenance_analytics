@@ -7,9 +7,9 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, recall_score, f1_score, classification_report
-from data_processing import load_and_clean_data
+from data_processing import load_and_clean_data, bootstrap_resample
 from visualization import plot_bootstrap_means, plot_boxplots, plot_failure_distribution, plot_mean_by_failure_type
-from regression_testing import perform_regression, plot_and_save_precision_recall_curve, save_results_to_csv
+from regression_testing import perform_regression, plot_and_save_roc_curve, plot_and_save_precision_recall_curve, save_results_to_csv
 
 # Setup argparse
 parser = argparse.ArgumentParser(description='Run predictive maintenance analytics.')
@@ -17,8 +17,12 @@ parser.add_argument('--data_path', type=str, help='Path to the dataset', require
 args = parser.parse_args()
 
 # Load and clean the data
-pred_df_cleaned_celcius = load_and_clean_data(args.data_path)
+pred_df_cleaned, _ = load_and_clean_data(args.data_path) 
+pred_df_cleaned_celcius, _ = load_and_clean_data(args.data_path)  
+
 columns_to_plot = ['Air temperature [C]', 'Process temperature [C]', 'Rotational speed [rpm]', 'Torque [Nm]', 'Tool wear [min]']
+
+columns_to_bootstrap = ['Air temperature [C]', 'Process temperature [C]', 'Rotational speed [rpm]', 'Torque [Nm]', 'Tool wear [min]']
 
 # Ensure the img directory exists
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -26,14 +30,15 @@ root_dir = os.path.abspath(os.path.join(current_dir, '..'))  # Navigate up to th
 img_dir = os.path.join(root_dir, 'img')
 os.makedirs(img_dir, exist_ok=True)
 
+bootstrap_means = bootstrap_resample(pred_df_cleaned, columns_to_bootstrap)
 # Visualizations
-plot_bootstrap_means(pred_df_cleaned_celcius, img_dir)
-plot_boxplots(pred_df_cleaned_celcius, img_dir)
+plot_bootstrap_means(bootstrap_means, img_dir)
+plot_boxplots(pred_df_cleaned_celcius, columns_to_plot, img_dir)
 plot_failure_distribution(pred_df_cleaned_celcius, img_dir)
 plot_mean_by_failure_type(pred_df_cleaned_celcius, columns_to_plot, img_dir)
 
 # Prepare the data for regression testing
-X = pred_df_cleaned_celcius.drop(['Product ID', 'Type', 'Machine failure', 'Failure type'], axis=1)
+X = pred_df_cleaned_celcius.drop(['Type', 'Machine failure', 'Failure type'], axis=1)
 y = pred_df_cleaned_celcius['Machine failure']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
