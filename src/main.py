@@ -2,13 +2,14 @@ import argparse
 import pandas as pd
 import os
 import csv
+import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, recall_score, f1_score, classification_report
 from data_processing import load_and_clean_data, bootstrap_resample
-from visualization import plot_bootstrap_means, plot_boxplots, plot_failure_distribution, plot_mean_by_failure_type
+from visualization import plot_bootstrap_means, plot_boxplots, plot_failure_distribution, plot_mean_by_failure_type, plot_operational_parameters, plot_mean_parameters_by_failure_type, plot_failure_distributions, plot_failure_distributions_2, plot_failure_type_counts
 from regression_testing import perform_regression, plot_and_save_roc_curve, plot_and_save_precision_recall_curve, save_results_to_csv
 
 # Setup argparse
@@ -31,11 +32,20 @@ img_dir = os.path.join(root_dir, 'img')
 os.makedirs(img_dir, exist_ok=True)
 
 bootstrap_means = bootstrap_resample(pred_df_cleaned, columns_to_bootstrap)
+filtered_df = pred_df_cleaned_celcius[pred_df_cleaned_celcius['Failure type'] != 'No Failure']
+base_palette = sns.color_palette('Paired')
+custom_palette = {failure_type: color for failure_type, color in zip(pred_df_cleaned_celcius['Failure type'].unique(), base_palette)}
+
 # Visualizations
 plot_bootstrap_means(bootstrap_means, img_dir)
 plot_boxplots(pred_df_cleaned_celcius, columns_to_plot, img_dir)
 plot_failure_distribution(pred_df_cleaned_celcius, img_dir)
 plot_mean_by_failure_type(pred_df_cleaned_celcius, columns_to_plot, img_dir)
+plot_operational_parameters(pred_df_cleaned_celcius, columns_to_plot, img_dir)
+plot_mean_parameters_by_failure_type(pred_df_cleaned_celcius, columns_to_plot, img_dir)
+plot_failure_distributions(filtered_df, columns_to_plot, custom_palette, img_dir)
+plot_failure_distributions_2(filtered_df, columns_to_plot, custom_palette, img_dir)
+plot_failure_type_counts(pred_df_cleaned_celcius, img_dir)
 
 # Prepare the data for regression testing
 X = pred_df_cleaned_celcius.drop(['Type', 'Machine failure', 'Failure type'], axis=1)
