@@ -1,11 +1,16 @@
 import pandas as pd
 import os
+import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix, recall_score, f1_score, classification_report, roc_curve, auc, precision_recall_curve
+from sklearn.metrics import (
+    accuracy_score, confusion_matrix, recall_score, f1_score,
+    classification_report, roc_curve, auc, precision_recall_curve
+)
 import matplotlib.pyplot as plt
+import seaborn as sns
 import csv
 
 def plot_and_save_roc_curve(fpr, tpr, model_name, reports_dir):
@@ -26,7 +31,7 @@ def plot_and_save_roc_curve(fpr, tpr, model_name, reports_dir):
     plt.title('ROC Curve')
     plt.legend()
 
-    # Construct the full path for the file to be saved
+    # Save the plot
     file_path = os.path.join(reports_dir, f'{model_name}_roc_curve.png')
     plt.savefig(file_path)
     plt.close()
@@ -48,8 +53,28 @@ def plot_and_save_precision_recall_curve(precision, recall, model_name, reports_
     plt.title('Precision-Recall Curve')
     plt.legend(loc="lower left")
 
-    # Construct the full path for the file to be saved
+    # Save the plot
     file_path = os.path.join(reports_dir, f'{model_name}_precision_recall_curve.png')
+    plt.savefig(file_path)
+    plt.close()
+
+def plot_and_save_confusion_matrix(cm, model_name, reports_dir):
+    """
+    Plot and save the confusion matrix for a model.
+
+    Parameters:
+    - cm: array-like, confusion matrix.
+    - model_name: str, name of the model.
+    - reports_dir: str, directory to save the plot.
+    """
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, fmt="d", cmap='Blues', cbar=False)
+    plt.title(f'Confusion Matrix: {model_name}')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+
+    # Save the plot
+    file_path = os.path.join(reports_dir, f'{model_name}_confusion_matrix.png')
     plt.savefig(file_path)
     plt.close()
 
@@ -84,7 +109,7 @@ def save_results_to_csv(results, reports_dir):
 
 def perform_regression(df, reports_dir):
     """
-    Perform regression analysis using multiple models and save the evaluation results.
+    Perform classification using multiple models and save the evaluation results.
 
     Parameters:
     - df: DataFrame, input data with features and target.
@@ -98,11 +123,11 @@ def perform_regression(df, reports_dir):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     # Initialize models
-    logistic_model = LogisticRegression(random_state=42, max_iter=1000)
-    decision_tree_model = DecisionTreeClassifier(random_state=42)
-    random_forest_model = RandomForestClassifier(random_state=42)
-
-    models = [logistic_model, decision_tree_model, random_forest_model]
+    models = [
+        LogisticRegression(random_state=42, max_iter=1000),
+        DecisionTreeClassifier(random_state=42),
+        RandomForestClassifier(random_state=42)
+    ]
 
     results = []
 
@@ -114,7 +139,7 @@ def perform_regression(df, reports_dir):
 
         # Calculate evaluation metrics
         accuracy = accuracy_score(y_test, y_pred)
-        confusion = confusion_matrix(y_test, y_pred)
+        cm = confusion_matrix(y_test, y_pred)
         recall = recall_score(y_test, y_pred, average='macro')
         f1 = f1_score(y_test, y_pred, average='macro')
         classification_rep = classification_report(y_test, y_pred, output_dict=True)
@@ -122,20 +147,21 @@ def perform_regression(df, reports_dir):
         results.append({
             'Model': model_name,
             'Accuracy': accuracy,
-            'Confusion Matrix': confusion.tolist(),
+            'Confusion Matrix': cm.tolist(),
             'Recall': recall,
             'F1 Score': f1,
             'Classification Report': classification_rep
         })
 
         # Calculate scores for ROC and Precision-Recall curves
-        y_score = model.predict_proba(X_test)
-        fpr, tpr, _ = roc_curve(y_test, y_score[:, 1])
-        precision, recall, _ = precision_recall_curve(y_test, y_score[:, 1])
+        y_score = model.predict_proba(X_test)[:, 1]
+        fpr, tpr, _ = roc_curve(y_test, y_score)
+        precision, recall, _ = precision_recall_curve(y_test, y_score)
 
-        # Save ROC and Precision-Recall curves
+        # Save plots
         plot_and_save_roc_curve(fpr, tpr, model_name, reports_dir)
         plot_and_save_precision_recall_curve(precision, recall, model_name, reports_dir)
+        plot_and_save_confusion_matrix(cm, model_name, reports_dir)
 
     # Save results to CSV
     save_results_to_csv(results, reports_dir)
