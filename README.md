@@ -117,8 +117,18 @@ For future enhancements, we plan to:
 ## 9. How to Run
 To set up and run the project, follow these steps:
 1. Clone the repository to your local machine.
-2. CD to src directory
-3. Run the main script with `python main.py --data_path ../data/ai4i2020.csv `.
+2. Navigate to the project directory: `cd your_project_directory`.
+3. Install the required Python packages
+
+```bash
+pip install -r requirements.txt
+```
+4. Navigate to the src directory: cd src.
+5. Run the main script with:
+
+```bash
+python main.py --data_path ../data/ai4i2020.csv
+```
 
 ## 10. Visualization
 To view the generated visualization images, navigate to the `img/` directory after running the project. You will find images such as:
