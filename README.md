@@ -1,7 +1,8 @@
 # Predictive Maintenance Analytics
 
-<img src="img/2-1.gif" style="width:auto; max-width:auto; height:auto;">
+
 </a>
+
 ## Table of Contents
 
 - [1. Background](#1-background)
@@ -19,7 +20,7 @@
 This project focuses on predictive maintenance analytics, utilizing machine learning to predict potential machine failures. By analyzing sensor data, we aim to identify conditions that may lead to machine failures, enabling proactive maintenance measures and reducing unexpected downtime.
 
 ## 2. Dataset Overview
-We utilized a dataset containing machine sensor data, available on [Kaggle](https://www.kaggle.com/datasets/stephanmatzka/predictive-maintenance-dataset-ai4i-2020/code). It tracks various manufacturing process parameters and outcomes, crucial for understanding machine health and predicting potential failures.
+We utilized a dataset containing machine sensor data, available on [Kaggle](https://www.kaggle.com/datasets/stephanmatzka/predictive-maintenance-dataset-ai4i-2020/data).  It contains various manufacturing process parameters and outcomes essential for understanding machine health and predicting potential failures.
 
 ### Dataset Composition
 The dataset comprises `14 columns` and 10,000 rows, each providing unique insights into the operational parameters machines:
@@ -45,7 +46,7 @@ The dataset comprises `14 columns` and 10,000 rows, each providing unique insigh
 ## 3. Data Processing
 The data processing phase encompassed several key steps to prepare the dataset for analysis:
 
-- **Data Cleaning**: Initiated by removing irrelevant data, including the dropping of the `UDI` column, to streamline the dataset for more focused analysis.
+- **Data Cleaning**: Initiated by removing irrelevant data, including the dropping of the `UDI` and `Product ID` columns, to streamline the dataset for more focused analysis.
 
 - **Data Transformation**: 
   - **Categorical Variables**: The failure mode indicators (`TWF`, `HDF`, `PWF`, `OSF`, `RNF`) were consolidated into a single column to simplify the analysis and model training process.
@@ -57,45 +58,75 @@ The data processing phase encompassed several key steps to prepare the dataset f
 
 ![No_Outliers](/img/boxplots.png)
 
-**No missing values identified in the dataset**
+**Missing values**:
+- No missing values were found, so no imputation was necessary.
 
 ## 4. Initial Exploration
 **Question 1:** What is the average distribution between the operational parameters and failure types?
 
+![Distribution](/img/failure_type_counts.png)
 
-## 4. Model Development
+**Question 2:** Calculate and illustrate most common failure type in the dataset.
+
+![Failure_Count](/img/failure_distributions.png)
+
+## 5. Hypothesis Testing
+**Question 1:** Does a relationship exist between operational parameters and the occurrence of machine failures?
+
+`Null Hypothesis (H0)`: There is no significant relationship between the operational parameters and `machine failure`.
+
+`Alternate Hypothesis (H1)`: There is a significant relationship between the operational parameters `machine failure`.
+
+**Question 2**: Given the operational parameters and machine states available in the dataset, can we identify patterns or conditions indicative of an impending failure?
+
+`Null Hypothesis (H0)`: There are no patterns or conditions in the operational parameters and machine states available in the dataset that are indicative of an impending failure.
+
+`Alternate Hypothesis (H1)`: There are patterns or conditions in the operational parameters and machine states available in the dataset that are indicative of an impending failure.
+
+![Relationships](/img/pairplot_ops_params1.png)
+
+![Heatmap](/img/corr_matrix1.png)
+
+
+![Test](/img/mannwhitneyu_test.png)
+
+![TTest](/img/ttest.png)
+
+### Hypothesis Testing Conclusion:
+- Patterns or conditions in the operational parameters and machine states available in the dataset are indicative of an impending failure.
+- There is a significant relationship between the operational parameters and machine failure.
+- The `Null Hypothesis` is `rejected` in both instances.
+
+## 6. Model Development
 Experimented with three machine learning models to predict potential machine failures:
 - **Logistic Regression:** Provided a solid baseline for performance with good interpretability.
-- **Decision Tree:** Offered insights into feature importance but was prone to overfitting.
-- **Random Forest:** Delivered the best performance overall, with high accuracy and robustness against overfitting.
+- **Decision Tree:** Delivered the best performance overall, with high accuracy and robustness against overfitting.
+- **Random Forest:** Delivered good performance, with high accuracy and robustness against overfitting.
 
-## 5. Evaluation and Key Findings
+## 7. Evaluation and Key Findings
 Our evaluation process highlighted the following key findings:
 - The Random Forest model outperformed other models in terms of accuracy and robustness.
 - Feature importance analysis revealed that rotational speed and torque are significant predictors of machine failure.
 
-## 6. Future Work
+## 8. Future Work
 For future enhancements, we plan to:
 - Explore hyperparameter tuning and feature engineering to further enhance model performance.
 - Integrate additional data sources to provide a more comprehensive view for predictions.
 - Develop a system for real-time predictions and alerts to facilitate immediate maintenance actions.
 
-## 7. How to Run
+## 9. How to Run
 To set up and run the project, follow these steps:
 1. Clone the repository to your local machine.
 2. CD to src directory
 3. Run the main script with `python main.py --data_path ../data/ai4i2020.csv `.
 
-## 8. Visualization
+## 10. Visualization
 To view the generated visualization images, navigate to the `img/` directory after running the project. You will find images such as:
 - `rotational_speed_vs_torque.png` - A scatter plot showing the relationship between rotational speed and torque.
 - `tool_wear_over_time.png` - A line graph depicting tool wear over time.
 
 These images provide insights into the data and model performance.
 
-## 9. Contributors
-- [Contributor 1]
-- [Contributor 2]
+## 11. Contributors
+- Simon Kanyiva
 
-## 10. License
-This project is licensed under the MIT License - see the LICENSE file for details.
