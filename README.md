@@ -157,7 +157,6 @@ To view the generated visualization images, navigate to the `img/` directory aft
 
 These images provide insights into the data and model performance.
 
-## 11. Contributors
+## 11. Author
 
 - Simon Kanyiva
-
